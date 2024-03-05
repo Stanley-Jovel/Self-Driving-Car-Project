@@ -50,11 +50,11 @@ class FNN(nn.Module):
     
 class Constants(Enum):
     INPUT_SIZE = 25  # Number of features in observation
-    HIDDEN_SIZE = 82  # Number of units in hidden layer of RNN
+    HIDDEN_SIZE = 128  # Number of units in hidden layer
+    NUM_HISTORY = 3  # Number of history steps to use
     OUTPUT_SIZE = 2  # Number of actions
     DROPOUT = 0.5  # Dropout rate
     lr = 1e-3  # Learning rate
-    NUM_HISTORY = 2  # Number of history steps to use
     EPOCHS = 20  # Number of epochs to train
 
     NUM_LAYERS = 4  # Number of LSTM layers
