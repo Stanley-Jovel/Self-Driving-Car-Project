@@ -1,5 +1,5 @@
 import argparse
-from train import RNN, Constants
+from train import FNN, Constants
 
 import numpy as np
 import torch
@@ -31,26 +31,27 @@ env = StableBaselinesGodotEnv(
 env = VecMonitor(env)
 
 # load model from file
-state_dict = torch.load("./model.pt")
-model = RNN(
-    Constants.INPUT_SIZE.value, 
-    Constants.HIDDEN_SIZE.value, 
-    Constants.NUM_LAYERS.value, 
-    Constants.OUTPUT_SIZE.value, 
-    Constants.DROPOUT.value)
-model.load_state_dict(state_dict)
+model = torch.load("./model.pt")
 model.eval()
+
+history = torch.zeros(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value)
+
+def update_history(obs):
+    global history
+    history = torch.cat([history[1:], obs])
 
 # inference
 obs = env.reset()
-obs = torch.tensor(obs["obs"], dtype=torch.float32).unsqueeze(0)
+obs = torch.tensor(obs["obs"], dtype=torch.float32)
+update_history(obs)
 for _ in range(args.timesteps):
     with torch.no_grad():
+        obs = torch.cat([o for o in history])
         action = model(obs)
     action = action.squeeze(0).detach().numpy()
     action = np.array([action])
-    print('action: ', action)
     obs, reward, done, info = env.step(action)
-    obs = torch.tensor(obs["obs"], dtype=torch.float32).unsqueeze(0)
+    obs = torch.tensor(obs["obs"], dtype=torch.float32)
+    update_history(obs)
 
 close_env()
