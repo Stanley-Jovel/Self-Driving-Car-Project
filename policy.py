@@ -1,6 +1,8 @@
 import argparse
+from train import RNN, Constants
 
 import numpy as np
+import torch
 from stable_baselines3.common.vec_env.vec_monitor import VecMonitor
 from godot_rl.wrappers.stable_baselines_wrapper import StableBaselinesGodotEnv
 
@@ -28,11 +30,27 @@ env = StableBaselinesGodotEnv(
 )
 env = VecMonitor(env)
 
+# load model from file
+state_dict = torch.load("./model.pt")
+model = RNN(
+    Constants.INPUT_SIZE.value, 
+    Constants.HIDDEN_SIZE.value, 
+    Constants.NUM_LAYERS.value, 
+    Constants.OUTPUT_SIZE.value, 
+    Constants.DROPOUT.value)
+model.load_state_dict(state_dict)
+model.eval()
 
+# inference
 obs = env.reset()
-for action in actions:
+obs = torch.tensor(obs["obs"], dtype=torch.float32).unsqueeze(0)
+for _ in range(args.timesteps):
+    with torch.no_grad():
+        action = model(obs)
+    action = action.squeeze(0).detach().numpy()
     action = np.array([action])
-    # action, _state = model.predict(obs, deterministic=True)
+    print('action: ', action)
     obs, reward, done, info = env.step(action)
+    obs = torch.tensor(obs["obs"], dtype=torch.float32).unsqueeze(0)
 
 close_env()
