@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 from stable_baselines3.common.vec_env.vec_monitor import VecMonitor
 from godot_rl.wrappers.stable_baselines_wrapper import StableBaselinesGodotEnv
@@ -35,12 +35,17 @@ class FNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, dropout):
         super(FNN, self).__init__()
         self.policy = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
+            nn.Linear(input_size, 256),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_size, hidden_size),
+
+            nn.Linear(256, 512),
             nn.ReLU(inplace=True),
-            # nn.Dropout(dropout),
-            nn.Linear(hidden_size, output_size),
+
+            nn.Linear(512, 256),
+            nn.ReLU(inplace=True),
+            # nn.Dropout(0.1),
+
+            nn.Linear(256, output_size),
             nn.Tanh()
         )
 
@@ -53,7 +58,7 @@ class Constants(Enum):
     HIDDEN_SIZE = 128  # Number of units in hidden layer
     NUM_HISTORY = 3  # Number of history steps to use
     OUTPUT_SIZE = 2  # Number of actions
-    DROPOUT = 0.5  # Dropout rate
+    DROPOUT = 0.25  # Dropout rate
     lr = 1e-3  # Learning rate
     EPOCHS = 20  # Number of epochs to train
 
@@ -127,30 +132,31 @@ def train():
 
     # create an optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=Constants.lr.value)
-    # scheduler = StepLR(optimizer, step_size=3, gamma=0.5)
+    scheduler = ReduceLROnPlateau(optimizer, "min", patience=2)
     # train the model
     iterator = tqdm(range(Constants.EPOCHS.value), total=Constants.EPOCHS.value, desc="Training")
 
     for epoch in iterator:
         model.train()
+        iterator.set_description("Training")
         for obs, action in train_dataloader:
             optimizer.zero_grad()
             pred = model(obs)
             loss = loss_fn(pred, action)
             loss.backward()
             optimizer.step()
-        iterator.set_postfix(epoch=epoch, loss=loss.item())
-        # scheduler.step()
 
-    # evaluate the model
-    model.eval()
-    with torch.no_grad():
-        test_loss = 0
-        for obs, action in test_dataloader:
-            pred = model(obs)
-            test_loss += loss_fn(pred, action).item()
-        test_loss /= len(test_dataloader)
-        print(f"Test loss: {loss.item()}")
+        # evaluate the model
+        iterator.set_description("Evaluating")
+        model.eval()
+        with torch.no_grad():
+            test_loss = 0
+            for obs, action in test_dataloader:
+                pred = model(obs)
+                test_loss += loss_fn(pred, action).item()
+            test_loss /= len(test_dataloader)
+        iterator.set_postfix(epoch=epoch, loss=test_loss)
+        scheduler.step(test_loss)
 
     # save the model
     torch.save(model, "model.pt")
