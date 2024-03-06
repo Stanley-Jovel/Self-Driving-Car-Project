@@ -35,17 +35,17 @@ class FNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, dropout):
         super(FNN, self).__init__()
         self.policy = nn.Sequential(
-            nn.Linear(input_size, 256),
+            nn.Linear(input_size, 512),
             nn.ReLU(inplace=True),
 
-            nn.Linear(256, 512),
+            nn.Linear(512, 1024),
             nn.ReLU(inplace=True),
 
-            nn.Linear(512, 256),
+            nn.Linear(1024, 512),
             nn.ReLU(inplace=True),
-            # nn.Dropout(0.1),
+            nn.Dropout(0.25),
 
-            nn.Linear(256, output_size),
+            nn.Linear(512, output_size),
             nn.Tanh()
         )
 
@@ -55,8 +55,8 @@ class FNN(nn.Module):
     
 class Constants(Enum):
     INPUT_SIZE = 25  # Number of features in observation
-    HIDDEN_SIZE = 128  # Number of units in hidden layer
-    NUM_HISTORY = 3  # Number of history steps to use
+    # HIDDEN_SIZE = 128  # Number of units in hidden layer
+    NUM_HISTORY = 10  # Number of history steps to use
     OUTPUT_SIZE = 2  # Number of actions
     DROPOUT = 0.25  # Dropout rate
     lr = 1e-3  # Learning rate
@@ -70,7 +70,7 @@ def train():
     action_list = torch.tensor([])
 
     for file in os.listdir("./demos"):
-        if file.startswith("*"):
+        if file.startswith("*") or file.startswith("."):
             continue
         with open(f"./demos/{file}", "r") as f:
             data = json.load(f)
