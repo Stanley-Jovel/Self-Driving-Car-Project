@@ -26,7 +26,7 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 args, extras = parser.parse_known_args()
 model = None
 
@@ -48,15 +48,76 @@ class FNN(nn.Module):
             nn.Linear(512, output_size),
             nn.Tanh()
         )
-
+# Multi agent. try transformers, bet, gaussian mixture models (GMM), diffussion. BC + RL. reward shaping. reverse RL.
+# AI to AI, have an RL policy to learn good performance, run demos on it. check if rl demos are better at bc
     def forward(self, x):
         x = self.policy(x)
         return x
     
+class BehaviorCloningModel(nn.Module): # 0.0112
+    def __init__(self, num_history, num_features, output_size):
+        super(BehaviorCloningModel, self).__init__()
+        self.flattened_size = 64 * (num_features // 4)
+        self.policy = nn.Sequential(
+
+            nn.Conv1d(in_channels=num_history, out_channels=32, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),
+            nn.BatchNorm1d(32),
+
+            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),
+            nn.BatchNorm1d(64)
+        )
+        self.classifier = nn.Sequential(
+            # Calculate the size after convolution and pooling
+            nn.Linear(self.flattened_size, self.flattened_size),
+            nn.ReLU(),
+            nn.Linear(self.flattened_size, self.flattened_size),
+            nn.ReLU(),
+            nn.Linear(self.flattened_size, 128),
+            nn.Dropout(),
+            nn.ReLU(),
+            nn.Linear(128, output_size),
+            nn.Tanh()
+        )
+            
+    def forward(self, x):
+        x = self.policy(x)
+        x = x.view(-1, self.flattened_size)  # Flatten the tensor for the fully connected layer
+        x = self.classifier(x)
+        return x
+    
+# best so far: history=5, hidden=256 loss=0.0113
+# history=4, hidden=128 loss=0.012
+class MultiHistoryNetwork(nn.Module):
+  def __init__(self, num_features, hidden_size, output_size, num_history):
+    super(MultiHistoryNetwork, self).__init__()
+    self.lstm = nn.LSTM(num_features, hidden_size, num_layers=1, batch_first=True)
+    self.output_features = hidden_size * num_history
+    self.linear = nn.Sequential(
+        nn.Linear(self.output_features, self.output_features),
+        nn.ReLU(),
+        nn.Linear(self.output_features, 512),
+        nn.ReLU(),
+        nn.Linear(512, 128),
+        nn.ReLU(),
+        nn.Linear(128, output_size),
+        nn.Tanh()
+    )
+
+  def forward(self, x):
+    # x is of shape (batch_size, num_history, num_features)
+    x, _ = self.lstm(x)  # Pass through LSTM
+    x = x.reshape(x.size(0), -1)  # Reshape to remove sequence dimension
+    x = self.linear(x)
+    return x
+  
 class Constants(Enum):
     INPUT_SIZE = 25  # Number of features in observation
-    # HIDDEN_SIZE = 128  # Number of units in hidden layer
-    NUM_HISTORY = 10  # Number of history steps to use
+    HIDDEN_SIZE = 256  # Number of units in hidden layer
+    NUM_HISTORY = 5  # Number of history steps to use
     OUTPUT_SIZE = 2  # Number of actions
     DROPOUT = 0.25  # Dropout rate
     lr = 1e-3  # Learning rate
@@ -88,7 +149,7 @@ def train():
                 action_list = torch.cat([action_list, action])
 
     # create a dataset
-    class Dataset(torch.utils.data.Dataset):
+    class DatasetHisoric(torch.utils.data.Dataset):
         def __init__(self, obs_list, action_list, num_history=Constants.NUM_HISTORY.value):
             self.obs_list = obs_list
             self.action_list = action_list
@@ -111,8 +172,33 @@ def train():
                 history_obs = torch.cat([torch.zeros(pad_width, Constants.INPUT_SIZE.value), history_obs], dim=0)
 
             return torch.cat([o for o in history_obs]), action
+        
+    class Dataset(torch.utils.data.Dataset):
+        def __init__(self, obs_list, action_list, num_history):
+            self.obs_list = obs_list
+            self.action_list = action_list
+            self.num_history = num_history
+            
+        def __len__(self):
+            return len(self.obs_list)
 
-    dataset = Dataset(obs_list, action_list)
+        def __getitem__(self, idx):
+            obs = self.obs_list[idx]
+            action = self.action_list[idx]
+
+            # Retrieve history observations
+            start_idx = max(0, idx - self.num_history)
+            history_obs = self.obs_list[start_idx:idx]
+
+            # Pad history observations if necessary
+            if len(history_obs) < self.num_history:
+                pad_width = self.num_history - len(history_obs)
+                padding = torch.zeros(pad_width, Constants.INPUT_SIZE.value)
+                history_obs = torch.cat([padding, history_obs])
+
+            return history_obs, action
+        
+    dataset = Dataset(obs_list, action_list, Constants.NUM_HISTORY.value)
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
@@ -121,14 +207,19 @@ def train():
     test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # Instantiate model, loss function, and optimizer
-    model = FNN(
-        Constants.INPUT_SIZE.value * Constants.NUM_HISTORY.value, 
-        Constants.HIDDEN_SIZE.value, 
-        Constants.OUTPUT_SIZE.value, 
-        Constants.DROPOUT.value)
+    # model = FNN(
+    # model = MultiHistoryNetwork(
+    #     Constants.INPUT_SIZE.value, 
+    #     Constants.HIDDEN_SIZE.value, 
+    #     Constants.OUTPUT_SIZE.value,
+    #     Constants.NUM_HISTORY.value).to(device)
+    model = BehaviorCloningModel(
+        Constants.NUM_HISTORY.value, 
+        Constants.INPUT_SIZE.value, 
+        Constants.OUTPUT_SIZE.value).to(device)
 
     # create a loss function
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.MSELoss().to(device)
 
     # create an optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=Constants.lr.value)
@@ -141,6 +232,8 @@ def train():
         iterator.set_description("Training")
         for obs, action in train_dataloader:
             optimizer.zero_grad()
+            obs = obs.to(device)
+            action = action.to(device)
             pred = model(obs)
             loss = loss_fn(pred, action)
             loss.backward()
@@ -152,10 +245,13 @@ def train():
         with torch.no_grad():
             test_loss = 0
             for obs, action in test_dataloader:
+                obs = obs.to(device)
+                action = action.to(device)
                 pred = model(obs)
                 test_loss += loss_fn(pred, action).item()
             test_loss /= len(test_dataloader)
-        iterator.set_postfix(epoch=epoch, loss=test_loss)
+        # iterator.set_postfix(epoch=epoch, loss=test_loss)
+        print('epoch: ', epoch, 'loss: ', test_loss)
         scheduler.step(test_loss)
 
     # save the model
@@ -191,8 +287,7 @@ obs = torch.tensor(obs["obs"], dtype=torch.float32)
 update_history(obs)
 for _ in range(args.timesteps):
     with torch.no_grad():
-        obs = torch.cat([o for o in history])
-        action = model(obs)
+        action = model(history.unsqueeze(0))
     action = action.squeeze(0).detach().numpy()
     action = np.array([action])
     obs, reward, done, info = env.step(action)

@@ -44,7 +44,7 @@ def train():
                 action_list = torch.cat([action_list, action])
 
     # create a dataset
-    class Dataset(torch.utils.data.Dataset):
+    class DatasetHistoric(torch.utils.data.Dataset):
         def __init__(self, obs_list, action_list, num_history=Constants.NUM_HISTORY.value):
             self.obs_list = obs_list
             self.action_list = action_list
@@ -67,6 +67,20 @@ def train():
                 history_obs = torch.cat([torch.zeros(pad_width, Constants.INPUT_SIZE.value), history_obs], dim=0)
 
             return torch.cat([o for o in history_obs]), action
+    
+    class Dataset(torch.utils.data.Dataset):
+        def __init__(self, obs_list, action_list):
+            self.obs_list = obs_list
+            self.action_list = action_list
+            
+        def __len__(self):
+            return len(self.obs_list)
+
+        def __getitem__(self, idx):
+            obs = self.obs_list[idx]
+            action = self.action_list[idx]
+
+            return obs, action
 
     dataset = Dataset(obs_list, action_list)
     train_size = int(0.8 * len(dataset))
