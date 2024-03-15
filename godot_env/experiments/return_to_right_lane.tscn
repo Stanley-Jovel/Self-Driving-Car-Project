@@ -1,0 +1,40 @@
+[gd_scene load_steps=7 format=3 uid="uid://bgn6p3kjwtmce"]
+
+[ext_resource type="PackedScene" uid="uid://ddfc7drwjh7ib" path="res://prefabs/road_straight.tscn" id="1_o51ks"]
+[ext_resource type="PackedScene" uid="uid://bp876pu2slcln" path="res://prefabs/car.tscn" id="2_pqbdr"]
+[ext_resource type="Script" path="res://addons/godot_rl_agents/sync.gd" id="3_pjtct"]
+[ext_resource type="Script" path="res://experiments/return_to_right_lane.gd" id="4_fh2cr"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3kopg"]
+resource_local_to_scene = true
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xpgxk"]
+resource_local_to_scene = true
+emission = Color(1, 1, 1, 1)
+
+[node name="ReturnToRightLane" type="Node3D"]
+script = ExtResource("4_fh2cr")
+
+[node name="Map" type="Node3D" parent="."]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 1.38171, 0, -6.63158)
+
+[node name="straight1" parent="Map" instance=ExtResource("1_o51ks")]
+
+[node name="straight2" parent="Map" instance=ExtResource("1_o51ks")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.70752, 0, 2.86365)
+
+[node name="Car" parent="." instance=ExtResource("2_pqbdr")]
+transform = Transform3D(1, -3.48787e-16, 3.48787e-16, 3.48787e-16, 1, -3.48787e-16, -3.48787e-16, 3.48787e-16, 1, -5.16132, 1.10449, 4.9129)
+braking_material = SubResource("StandardMaterial3D_3kopg")
+reversing_material = SubResource("StandardMaterial3D_xpgxk")
+
+[node name="AIController3D" parent="Car" index="8"]
+control_mode = 4
+
+[node name="Sync" type="Node" parent="."]
+script = ExtResource("3_pjtct")
+action_repeat = 1
+
+[editable path="Car"]
+[editable path="Car/car_base"]

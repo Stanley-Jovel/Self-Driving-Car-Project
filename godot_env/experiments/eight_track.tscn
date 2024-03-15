@@ -1,0 +1,319 @@
+[gd_scene load_steps=12 format=3 uid="uid://b7dxhla2t0k4w"]
+
+[ext_resource type="PackedScene" uid="uid://dumhqg5c4o6v8" path="res://prefabs/road_junction.tscn" id="1_kc5u3"]
+[ext_resource type="Script" path="res://experiments/return_to_right_lane.gd" id="1_yhl5o"]
+[ext_resource type="PackedScene" uid="uid://cn2van3bgkmch" path="res://imported/car/Car.tscn" id="1_yijon"]
+[ext_resource type="PackedScene" uid="uid://ddfc7drwjh7ib" path="res://prefabs/road_straight.tscn" id="2_sorqs"]
+[ext_resource type="PackedScene" uid="uid://bn7nigki4rwhe" path="res://prefabs/road_corner_curved.tscn" id="3_y8xb7"]
+[ext_resource type="Script" path="res://addons/godot_rl_agents/sync.gd" id="5_tjt8j"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_itw7m"]
+resource_local_to_scene = true
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cx2ko"]
+resource_local_to_scene = true
+emission = Color(1, 1, 1, 1)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_03qp0"]
+ground_bottom_color = Color(0.2, 0.247059, 0.133333, 1)
+
+[sub_resource type="Sky" id="Sky_0uc7p"]
+sky_material = SubResource("ProceduralSkyMaterial_03qp0")
+radiance_size = 2
+
+[sub_resource type="Environment" id="Environment_nvdf1"]
+background_mode = 2
+sky = SubResource("Sky_0uc7p")
+
+[node name="EightTrack" type="Node3D"]
+script = ExtResource("1_yhl5o")
+
+[node name="Car" parent="." instance=ExtResource("1_yijon")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -50.5332, 1.12756, 16)
+braking_material = SubResource("StandardMaterial3D_itw7m")
+reversing_material = SubResource("StandardMaterial3D_cx2ko")
+
+[node name="Track_Long" type="Node3D" parent="."]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0)
+
+[node name="road_junction" parent="Track_Long" instance=ExtResource("1_kc5u3")]
+
+[node name="wing" type="Node3D" parent="Track_Long"]
+
+[node name="straight1" parent="Track_Long/wing" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 2.00031)
+
+[node name="straight2" parent="Track_Long/wing" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track_Long/wing" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519902, 0, 6.00244)
+
+[node name="wing2" type="Node3D" parent="Track_Long"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 6)
+
+[node name="straight1" parent="Track_Long/wing2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 2.00031)
+
+[node name="straight2" parent="Track_Long/wing2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track_Long/wing2" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519902, 0, 6.00244)
+
+[node name="wing3" type="Node3D" parent="Track_Long"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="straight1" parent="Track_Long/wing3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 2.00031)
+
+[node name="straight2" parent="Track_Long/wing3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track_Long/wing3" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519902, 0, 6.00244)
+
+[node name="wing4" type="Node3D" parent="Track_Long"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 6, 0, 6)
+
+[node name="straight1" parent="Track_Long/wing4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 2.00031)
+
+[node name="straight2" parent="Track_Long/wing4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track_Long/wing4" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519902, 0, 6.00244)
+
+[node name="wing5" type="Node3D" parent="Track_Long"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="straight1" parent="Track_Long/wing5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 2.00031)
+
+[node name="straight2" parent="Track_Long/wing5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track_Long/wing5" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0.000519902, 0, 6.00244)
+
+[node name="wing6" type="Node3D" parent="Track_Long"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -6, 0, 0)
+
+[node name="straight1" parent="Track_Long/wing6" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 2.00031)
+
+[node name="straight2" parent="Track_Long/wing6" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.45952e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track_Long/wing6" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0.000519902, 0, 6.00244)
+
+[node name="straight1" parent="Track_Long" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.00007, 0, 0.000310898)
+
+[node name="straight2" parent="Track_Long" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="straight3" parent="Track_Long" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -1.99993, 0, -5.99969)
+
+[node name="straight4" parent="Track_Long" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -3.99993, 0, -5.99969)
+
+[node name="Sync" type="Node" parent="."]
+script = ExtResource("5_tjt8j")
+action_repeat = 1
+speed_up = 3.0
+
+[node name="Junctions_Experiment" type="Node3D" parent="."]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 88.3932, 0, 0)
+
+[node name="section" type="Node3D" parent="Junctions_Experiment"]
+
+[node name="straight1" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.00007, 0, 0.000310898)
+
+[node name="straight2" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="road_junction" parent="Junctions_Experiment/section" instance=ExtResource("1_kc5u3")]
+
+[node name="straight3" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -1.99992, 0, 0.000310898)
+
+[node name="straight4" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -3.99992, 0, 0.000310898)
+
+[node name="straight5" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 7.43866e-05, 0, 4.00031)
+
+[node name="straight6" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 7.43866e-05, 0, 2.00031)
+
+[node name="straight7" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -3.99969)
+
+[node name="straight8" parent="Junctions_Experiment/section" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -1.99969)
+
+[node name="section2" type="Node3D" parent="Junctions_Experiment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6.00016)
+
+[node name="straight1" parent="Junctions_Experiment/section2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.00007, 0, 0.000310898)
+
+[node name="straight2" parent="Junctions_Experiment/section2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="road_junction" parent="Junctions_Experiment/section2" instance=ExtResource("1_kc5u3")]
+
+[node name="straight3" parent="Junctions_Experiment/section2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -1.99992, 0, 0.000310898)
+
+[node name="straight4" parent="Junctions_Experiment/section2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -3.99992, 0, 0.000310898)
+
+[node name="straight7" parent="Junctions_Experiment/section2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -3.99969)
+
+[node name="straight8" parent="Junctions_Experiment/section2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -1.99969)
+
+[node name="section3" type="Node3D" parent="Junctions_Experiment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.0002)
+
+[node name="straight1" parent="Junctions_Experiment/section3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.00007, 0, 0.000310898)
+
+[node name="straight2" parent="Junctions_Experiment/section3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="road_junction" parent="Junctions_Experiment/section3" instance=ExtResource("1_kc5u3")]
+
+[node name="straight3" parent="Junctions_Experiment/section3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -1.99992, 0, 0.000310898)
+
+[node name="straight4" parent="Junctions_Experiment/section3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -3.99992, 0, 0.000310898)
+
+[node name="straight7" parent="Junctions_Experiment/section3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -3.99969)
+
+[node name="straight8" parent="Junctions_Experiment/section3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -1.99969)
+
+[node name="section4" type="Node3D" parent="Junctions_Experiment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18.0002)
+
+[node name="straight1" parent="Junctions_Experiment/section4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.00007, 0, 0.000310898)
+
+[node name="straight2" parent="Junctions_Experiment/section4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="road_junction" parent="Junctions_Experiment/section4" instance=ExtResource("1_kc5u3")]
+
+[node name="straight3" parent="Junctions_Experiment/section4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -1.99992, 0, 0.000310898)
+
+[node name="straight4" parent="Junctions_Experiment/section4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -3.99992, 0, 0.000310898)
+
+[node name="straight7" parent="Junctions_Experiment/section4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -3.99969)
+
+[node name="straight8" parent="Junctions_Experiment/section4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -1.99969)
+
+[node name="section5" type="Node3D" parent="Junctions_Experiment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24.0002)
+
+[node name="straight1" parent="Junctions_Experiment/section5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 4.00007, 0, 0.000310898)
+
+[node name="straight2" parent="Junctions_Experiment/section5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="road_junction" parent="Junctions_Experiment/section5" instance=ExtResource("1_kc5u3")]
+
+[node name="straight3" parent="Junctions_Experiment/section5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -1.99992, 0, 0.000310898)
+
+[node name="straight4" parent="Junctions_Experiment/section5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -3.99992, 0, 0.000310898)
+
+[node name="straight7" parent="Junctions_Experiment/section5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -3.99969)
+
+[node name="straight8" parent="Junctions_Experiment/section5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -1.74846e-07, 0, 1, 0, 1.74846e-07, 0, 1, 7.43866e-05, 0, -1.99969)
+
+[node name="Track" type="Node3D" parent="."]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -72, 0, 0)
+
+[node name="road_junction" parent="Track" instance=ExtResource("1_kc5u3")]
+
+[node name="wing" type="Node3D" parent="Track"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="straight1" parent="Track/wing" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.53403e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track/wing" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519902, 0, 6.00244)
+
+[node name="wing2" type="Node3D" parent="Track"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -2, 0, 4)
+
+[node name="straight2" parent="Track/wing2" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -5.91921e-17, 0, 1, 0, 0, 0, 1, 7.48634e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track/wing2" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519991, 0, 5.99766)
+
+[node name="wing4" type="Node3D" parent="Track"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 4.00314, 0, 6)
+
+[node name="straight2" parent="Track/wing4" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 1.18384e-16, 0, 1, 0.0048542, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track/wing4" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.00529861, 0, 6.00084)
+
+[node name="straight2" parent="Track" instance=ExtResource("2_sorqs")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.00007, 0, 0.000310898)
+
+[node name="wing3" type="Node3D" parent="Track"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0.00160599, 0, 2.00016)
+
+[node name="straight1" parent="Track/wing3" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.53403e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track/wing3" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519902, 0, 6.00244)
+
+[node name="wing5" type="Node3D" parent="Track"]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.0016, 0, -3.99984)
+
+[node name="straight2" parent="Track/wing5" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, -5.91921e-17, 0, 1, 0, 0, 0, 1, 7.48634e-05, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track/wing5" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.000519991, 0, 5.99766)
+
+[node name="wing6" type="Node3D" parent="Track"]
+transform = Transform3D(1, 0, 1.7053e-14, 0, 1, 0, -1.84741e-14, 0, 1, -4.00153, 0, -5.99985)
+
+[node name="straight2" parent="Track/wing6" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 1.18384e-16, 0, 1, 0.0048542, 0, 4.00031)
+
+[node name="road_corner_curved2" parent="Track/wing6" instance=ExtResource("3_y8xb7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.00529861, 0, 6.00084)
+
+[node name="straight3" parent="Track" instance=ExtResource("2_sorqs")]
+transform = Transform3D(1.31134e-07, 0, 1, 0, 1, 0, -1, 0, 1.31134e-07, -1.99847, 0, -0.000155258)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_nvdf1")

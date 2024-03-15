@@ -1,0 +1,199 @@
+[gd_scene load_steps=10 format=3 uid="uid://bp876pu2slcln"]
+
+[ext_resource type="Script" path="res://imported/car/Car.gd" id="1_7y1km"]
+[ext_resource type="PackedScene" uid="uid://djr0tkglay4py" path="res://imported/blender/car_base.blend" id="2_m7j3c"]
+[ext_resource type="PackedScene" uid="uid://d3saly1xwj5s" path="res://imported/car/Wheel.tscn" id="3_de88a"]
+[ext_resource type="Script" path="res://addons/godot_rl_agents/sensors/sensors_3d/RaycastSensor3D.gd" id="4_q2cav"]
+[ext_resource type="Script" path="res://imported/car/CarAIController.gd" id="5_kco56"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ux62s"]
+resource_local_to_scene = true
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_juvva"]
+resource_local_to_scene = true
+emission = Color(1, 1, 1, 1)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_ey2uy"]
+points = PackedVector3Array(-1.07131, 0.109052, -1.54357, 1.08983, 0.83316, 1.90767, -1.10341, 0.822321, 1.8853, 0.989547, -0.97941, 1.03135, 1.08983, 0.83316, -1.90767, -1.01606, -0.97941, -1.03135, -1.01606, -0.97941, 1.03135, 0.989547, -0.97941, -1.03135, -1.10341, 0.822321, -1.8853, 1.04556, -0.463054, -1.25862, 1.05067, -0.349671, 1.32232, -1.07441, 0.683148, 1.83514, -1.07441, 0.683148, -1.83514, -1.07131, 0.109052, 1.54357, 1.04556, -0.463054, 1.25862, 1.05067, -0.349671, -1.32232)
+
+[sub_resource type="InputEventKey" id="InputEventKey_w7hgi"]
+device = -1
+keycode = 82
+unicode = 114
+
+[node name="Car" type="VehicleBody3D"]
+transform = Transform3D(1, -3.48787e-16, 3.48787e-16, 3.48787e-16, 1, -3.48787e-16, -3.48787e-16, 3.48787e-16, 1, -5.05846, 1.10449, 20.9129)
+collision_layer = 2
+mass = 1000.0
+continuous_cd = true
+max_contacts_reported = 1
+script = ExtResource("1_7y1km")
+braking_material = SubResource("StandardMaterial3D_ux62s")
+reversing_material = SubResource("StandardMaterial3D_juvva")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.5, 0, 0, 0, -0.5, 7.54979e-08, 0, -7.54979e-08, -0.5, 0, 0, 0)
+shape = SubResource("ConvexPolygonShape3D_ey2uy")
+
+[node name="car_base" parent="." instance=ExtResource("2_m7j3c")]
+
+[node name="BackWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 1.74846e-07, 0, 1, 0, -1.74846e-07, 0, 1, -0.7, -0.426319, -0.45)
+wheel_radius = 0.349
+suspension_travel = 5.0
+suspension_stiffness = 50.0
+damping_compression = 1.9
+damping_relaxation = 2.0
+
+[node name="Wheel" parent="BackWheel" instance=ExtResource("3_de88a")]
+transform = Transform3D(-4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0, 0, 0)
+
+[node name="BackWheel2" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 1.74846e-07, 0, 1, 0, -1.74846e-07, 0, 1, 0.7, -0.426473, -0.45)
+wheel_radius = 0.349
+suspension_travel = 5.0
+suspension_stiffness = 50.0
+damping_compression = 1.9
+damping_relaxation = 2.0
+
+[node name="Wheel3" parent="BackWheel2" instance=ExtResource("3_de88a")]
+transform = Transform3D(-4.37114e-08, -1, 4.37114e-08, 0, -4.37114e-08, -1, 1, -4.37114e-08, 1.91069e-15, 0, 0, 0)
+
+[node name="FrontWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 1.74846e-07, 0, 1, 0, -1.74846e-07, 0, 1, -0.7, -0.426473, 0.45)
+use_as_traction = true
+use_as_steering = true
+wheel_radius = 0.349
+suspension_travel = 5.0
+suspension_stiffness = 50.0
+damping_compression = 1.9
+damping_relaxation = 2.0
+
+[node name="Wheel2" parent="FrontWheel" instance=ExtResource("3_de88a")]
+transform = Transform3D(-4.37114e-08, -1, 4.37114e-08, 0, -4.37114e-08, -1, 1, -4.37114e-08, 1.91069e-15, 0, 0, 0)
+
+[node name="FrontWheel2" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 1.74846e-07, 0, 1, 0, -1.74846e-07, 0, 1, 0.7, -0.426473, 0.45)
+use_as_traction = true
+use_as_steering = true
+wheel_radius = 0.349
+suspension_travel = 5.0
+suspension_stiffness = 50.0
+damping_compression = 1.9
+damping_relaxation = 2.0
+
+[node name="Wheel4" parent="FrontWheel2" instance=ExtResource("3_de88a")]
+transform = Transform3D(-4.37114e-08, -1, 4.37114e-08, 0, -4.37114e-08, -1, 1, -4.37114e-08, 1.91069e-15, 0, 0, 0)
+
+[node name="RayCastSensor3D" type="Node3D" parent="."]
+script = ExtResource("4_q2cav")
+n_rays_width = 21.0
+n_rays_height = 1.0
+ray_length = 35.0
+cone_width = 360.0
+cone_height = 0.0
+collide_with_areas = true
+
+[node name="_RayCast3D_54169" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-5.21648, 0, -34.6091)
+collide_with_areas = true
+
+[node name="node_1 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-15.1859, 0, -31.5339)
+collide_with_areas = true
+
+[node name="node_2 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-23.806, 0, -25.6568)
+collide_with_areas = true
+
+[node name="node_3 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-30.3109, 0, -17.5)
+collide_with_areas = true
+
+[node name="node_4 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-34.1225, 0, -7.78823)
+collide_with_areas = true
+
+[node name="node_5 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-34.9021, 0, 2.61555)
+collide_with_areas = true
+
+[node name="node_6 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-32.5806, 0, 12.7869)
+collide_with_areas = true
+
+[node name="node_7 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-27.3641, 0, 21.8221)
+collide_with_areas = true
+
+[node name="node_8 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-19.7162, 0, 28.9184)
+collide_with_areas = true
+
+[node name="node_9 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-10.3164, 0, 33.445)
+collide_with_areas = true
+
+[node name="node_10 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-1.08859e-11, 0, 35)
+collide_with_areas = true
+
+[node name="node_11 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(10.3164, 0, 33.445)
+collide_with_areas = true
+
+[node name="node_12 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(19.7162, 0, 28.9184)
+collide_with_areas = true
+
+[node name="node_13 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(27.3641, 0, 21.8221)
+collide_with_areas = true
+
+[node name="node_14 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(32.5806, 0, 12.7869)
+collide_with_areas = true
+
+[node name="node_15 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(34.9021, 0, 2.61555)
+collide_with_areas = true
+
+[node name="node_16 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(34.1225, 0, -7.78823)
+collide_with_areas = true
+
+[node name="node_17 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(30.3109, 0, -17.5)
+collide_with_areas = true
+
+[node name="node_18 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(23.806, 0, -25.6568)
+collide_with_areas = true
+
+[node name="node_19 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(15.1859, 0, -31.5339)
+collide_with_areas = true
+
+[node name="node_20 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(5.21648, 0, -34.6091)
+collide_with_areas = true
+
+[node name="node_21 0" type="RayCast3D" parent="RayCastSensor3D"]
+target_position = Vector3(-5.21648, 0, -34.6091)
+collide_with_areas = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-1, 8.0336e-15, 8.74228e-08, 4.91364e-08, 0.8271, 0.562055, -7.23074e-08, 0.562055, -0.8271, 0, 2.16191, -2.5965)
+current = true
+fov = 88.9064
+
+[node name="AIController3D" type="Node3D" parent="."]
+script = ExtResource("5_kco56")
+control_mode = 2
+expert_demo_save_path = "demo.json"
+remove_last_episode_key = SubResource("InputEventKey_w7hgi")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+
+[editable path="car_base"]

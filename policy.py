@@ -26,40 +26,19 @@ parser.add_argument(
     action="store_true",
     default=False,
 )
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device =  torch.device("cpu") #torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+print('device: ', device)
 args, extras = parser.parse_known_args()
 model = None
 
-    # Define RNN model
-class FNN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, dropout):
-        super(FNN, self).__init__()
-        self.policy = nn.Sequential(
-            nn.Linear(input_size, 512),
-            nn.ReLU(inplace=True),
-
-            nn.Linear(512, 1024),
-            nn.ReLU(inplace=True),
-
-            nn.Linear(1024, 512),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.25),
-
-            nn.Linear(512, output_size),
-            nn.Tanh()
-        )
 # Multi agent. try transformers, bet, gaussian mixture models (GMM), diffussion. BC + RL. reward shaping. reverse RL.
 # AI to AI, have an RL policy to learn good performance, run demos on it. check if rl demos are better at bc
-    def forward(self, x):
-        x = self.policy(x)
-        return x
     
-class BehaviorCloningModel(nn.Module): # 0.0112
+class BehaviorCloningModel(nn.Module):
     def __init__(self, num_history, num_features, output_size):
         super(BehaviorCloningModel, self).__init__()
         self.flattened_size = 64 * (num_features // 4)
         self.policy = nn.Sequential(
-
             nn.Conv1d(in_channels=num_history, out_channels=32, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
@@ -82,42 +61,17 @@ class BehaviorCloningModel(nn.Module): # 0.0112
             nn.Linear(128, output_size),
             nn.Tanh()
         )
-            
+
     def forward(self, x):
         x = self.policy(x)
         x = x.view(-1, self.flattened_size)  # Flatten the tensor for the fully connected layer
         x = self.classifier(x)
         return x
-    
-# best so far: history=5, hidden=256 loss=0.0113
-# history=4, hidden=128 loss=0.012
-class MultiHistoryNetwork(nn.Module):
-  def __init__(self, num_features, hidden_size, output_size, num_history):
-    super(MultiHistoryNetwork, self).__init__()
-    self.lstm = nn.LSTM(num_features, hidden_size, num_layers=1, batch_first=True)
-    self.output_features = hidden_size * num_history
-    self.linear = nn.Sequential(
-        nn.Linear(self.output_features, self.output_features),
-        nn.ReLU(),
-        nn.Linear(self.output_features, 512),
-        nn.ReLU(),
-        nn.Linear(512, 128),
-        nn.ReLU(),
-        nn.Linear(128, output_size),
-        nn.Tanh()
-    )
-
-  def forward(self, x):
-    # x is of shape (batch_size, num_history, num_features)
-    x, _ = self.lstm(x)  # Pass through LSTM
-    x = x.reshape(x.size(0), -1)  # Reshape to remove sequence dimension
-    x = self.linear(x)
-    return x
   
 class Constants(Enum):
     INPUT_SIZE = 25  # Number of features in observation
-    HIDDEN_SIZE = 256  # Number of units in hidden layer
-    NUM_HISTORY = 5  # Number of history steps to use
+    HIDDEN_SIZE = 128  # Number of units in hidden layer
+    NUM_HISTORY = 10  # Number of history steps to use
     OUTPUT_SIZE = 2  # Number of actions
     DROPOUT = 0.25  # Dropout rate
     lr = 1e-3  # Learning rate
@@ -207,12 +161,6 @@ def train():
     test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     # Instantiate model, loss function, and optimizer
-    # model = FNN(
-    # model = MultiHistoryNetwork(
-    #     Constants.INPUT_SIZE.value, 
-    #     Constants.HIDDEN_SIZE.value, 
-    #     Constants.OUTPUT_SIZE.value,
-    #     Constants.NUM_HISTORY.value).to(device)
     model = BehaviorCloningModel(
         Constants.NUM_HISTORY.value, 
         Constants.INPUT_SIZE.value, 
@@ -225,7 +173,7 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=Constants.lr.value)
     scheduler = ReduceLROnPlateau(optimizer, "min", patience=2)
     # train the model
-    iterator = tqdm(range(Constants.EPOCHS.value), total=Constants.EPOCHS.value, desc="Training")
+    iterator = tqdm(range(1, Constants.EPOCHS.value + 1), total=Constants.EPOCHS.value, desc="Training")
 
     for epoch in iterator:
         model.train()
