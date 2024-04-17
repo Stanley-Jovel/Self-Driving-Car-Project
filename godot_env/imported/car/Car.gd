@@ -34,20 +34,34 @@ func _ready():
 	_rear_lights.resize(2)
 	_rear_lights[0] = $"car_base/Rear-light" as MeshInstance3D
 	_rear_lights[1] = $"car_base/Rear-light_001" as MeshInstance3D
+
+func update_reward():
+	var raycasts = raycast_sensor.get_observation()
+	var ratio = raycasts[0]
+	var desired_ratio = 0.871
+	var reward = 0
+	var penalization = 1
+	if ratio < 0.844 or ratio > 0.896:
+		penalization = 0.11
+	
+	var distance = 1 - abs(ratio - desired_ratio)
+	reward = lerp(1.0, 10.0, distance * penalization)
+	print(reward)
+	
+	## Backward movement penalty
+	ai_controller.reward += reward
+	ai_controller.reward += min(0.0, get_normalized_velocity_in_player_reference().z + 0.1) * 5.0
+
+	pass
 	
 func reset():
 	times_restarted += 1
 	
 	transform = _initial_transform
-	
-	if randi_range(0, 1) == 0:
-		transform.origin = -transform.origin
-		transform.basis = transform.basis.rotated(Vector3.UP, PI)
-
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
+	ai_controller.reset()
 	
-	transform.basis = transform.basis.rotated(Vector3.UP, randf_range(-0.3, 0.3))
 	
 func _physics_process(delta):
 	#_update_reward()
@@ -94,10 +108,6 @@ func _update_rear_lights():
 func set_rear_light_material(material: StandardMaterial3D):
 	_rear_lights[0].set_surface_override_material(0, material)
 	_rear_lights[1].set_surface_override_material(0, material)
-
-#func _reset_on_out_of_bounds():
-	#if (position.y < -2 or abs(position.x) > 10 or abs(position.z) > 10):
-		#_end_episode(episode_ended_unsuccessfully_reward)
 
 func _end_episode(final_reward: float = 0.0):
 	ai_controller.reward += final_reward

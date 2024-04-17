@@ -95,6 +95,7 @@ def update_history(obs):
 # Training loop
 for epoch in range(NUM_EPOCHS):
     # Collect data for one epoch
+    print(f"Epoch {epoch + 1}/{NUM_EPOCHS}")
     obs_list, reward_list, next_obs_list, done_list, log_prob_list = [], np.array([]), [], np.array([]), []
     history_tensor, next_history_tensor, actions_tensor = torch.empty(0), torch.empty(0), torch.empty(0)
     obs = env.reset()
