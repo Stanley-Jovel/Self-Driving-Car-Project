@@ -1,0 +1,4 @@
+godot-rl
+torch
+numpy
+
