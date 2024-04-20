@@ -84,11 +84,9 @@ env = VecMonitor(env)
 agent = PPOModel(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, Constants.OUTPUT_SIZE.value).to(device)
 
 agent.load_state_dict(torch.load("pretrained_model_dict_cuda.pt", map_location=device))
-# agent.load_state_dict(torch.load("ppo_agent_trained_circle_track_clock_wise.pt", map_location=device))
 actor_optim = Adam(agent.parameters(), lr=LEARNING_RATE)
 
 critic = PPOCritic(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, 1).to(device)
-critic.load_state_dict(torch.load("pretrained_optimizer_dict_cuda.pt", map_location=device
 critic_optim = Adam(critic.parameters(), lr=0.005)
 
 # Initialize history buffer

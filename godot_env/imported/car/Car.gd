@@ -7,6 +7,8 @@ class_name Car
 @export var acceleration: float = 200
 @export var max_steer_angle: float = 20
 
+@export var track_path: Path3D
+
 @onready var max_velocity = acceleration / mass * 40
 @onready var ai_controller: CarAIController = $AIController3D
 @onready var raycast_sensor: RayCastSensor3D = $RayCastSensor3D
@@ -17,6 +19,12 @@ var requested_steering: float
 var _initial_transform: Transform3D
 var times_restarted: int
 var delta_tracker: float = 0
+#var last_position: Vector3
+
+# Track Info
+#var track_length: float
+#var previous_offset: float
+#var current_offset: float
 
 var episode_ended_unsuccessfully_reward: float = -6
 
@@ -30,29 +38,77 @@ func get_normalized_velocity():
 func _ready():
 	ai_controller.init(self)
 	_initial_transform = transform
-	
+	#track_length = track_path.curve.get_baked_length()
+	#last_position = global_transform.origin
 	_rear_lights.resize(2)
 	_rear_lights[0] = $"car_base/Rear-light" as MeshInstance3D
 	_rear_lights[1] = $"car_base/Rear-light_001" as MeshInstance3D
 
+#func update_current_offset():
+	#current_offset = track_path.curve.get_closest_offset(global_position)
+	
 func update_reward():
 	var raycasts = raycast_sensor.get_observation()
-	var ratio = raycasts[0]
-	var desired_ratio = 0.871
-	var reward = 0
-	var penalization = 1
-	if ratio < 0.844 or ratio > 0.896:
-		penalization = 0.11
+	var left_sensor = raycasts[20]
+	var center_sensor = raycasts[10]
+	var right_sensor = raycasts[0]
 	
-	var distance = 1 - abs(ratio - desired_ratio)
-	reward = lerp(1.0, 10.0, distance * penalization)
-	print(reward)
+	var desired_right_measure = 0.871
+	var desired_center_measure = 0.8
 	
-	## Backward movement penalty
-	ai_controller.reward += reward
-	ai_controller.reward += min(0.0, get_normalized_velocity_in_player_reference().z + 0.1) * 5.0
-
-	pass
+	var right_sensor_reward = 0
+	var center_sensor_reward = 0
+	
+	# Distance Travelled Reward
+	#var current_position = global_transform.origin
+	#var forward_displacement = current_position.z - last_position.z
+	#last_position = current_position  # Update for the next step
+	
+	# Reward for not crashing head first
+	if center_sensor <= desired_center_measure:
+		var distance = abs(center_sensor - desired_center_measure)
+		center_sensor_reward += lerp(1.0, 10.0, distance)
+	
+	# Reward remain in the right lane
+	var distance = 1 - abs(right_sensor - desired_right_measure)
+	right_sensor_reward += lerp(1.0, 10.0, distance)
+	
+	# Penalization for deviating from the right lane
+	if right_sensor < 0.844 or right_sensor > 0.896:
+		right_sensor_reward *= 0.15
+	
+	if right_sensor < left_sensor:
+		right_sensor_reward -= 4
+	
+	ai_controller.reward += right_sensor_reward + center_sensor_reward
+	
+	# Penalization for moving backwards
+	var velocity = get_normalized_velocity_in_player_reference().z
+	if velocity > 0:
+		ai_controller.reward += (velocity * 10) ** 3
+	else:
+		ai_controller.reward -= 4
+	
+	# Penalization for steering too much
+	#var steering_penalty = abs(steering) * 2 
+	#ai_controller.reward -= steering_penalty
+	
+	#var offset_difference = current_offset - previous_offset
+#
+	#if offset_difference > (track_length / 2.0):
+		#offset_difference = offset_difference - track_length
+#
+	#if offset_difference < -(track_length / 2.0):
+		#offset_difference = offset_difference + track_length
+#
+	### Reward for moving along the track (positive or negative depending on direction)
+	#ai_controller.reward += offset_difference #/ 10.0
+	#print("offset_difference: ", offset_difference)
+#
+	### Backward movement penalty
+	#ai_controller.reward += min(0.0, get_normalized_velocity_in_player_reference().z + 0.1) * 5.0
+#
+	#previous_offset = current_offset
 	
 func reset():
 	times_restarted += 1
@@ -60,18 +116,16 @@ func reset():
 	transform = _initial_transform
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
-	ai_controller.reset()
 	
 	
 func _physics_process(delta):
-	#_update_reward()
+	update_reward()
+	#update_current_offset()
 	delta_tracker = delta
-
 	if (ai_controller.heuristic != "human"):
 		engine_force = (requested_acceleration) * acceleration
 		steering = requested_steering
 	else:
-		var r = self.human_controls_car()
 		ai_controller.set_action()
 
 		
@@ -79,6 +133,10 @@ func _physics_process(delta):
 	if (Input.is_action_just_released("finish_record_demo")):
 		ai_controller.done = true
 	#_reset_on_out_of_bounds()
+	
+	#if ai_controller.n_steps > ai_controller.reset_after:
+		#ai_controller.n_steps = 0
+		#reset()
 
 func human_controls_car():
 	var logal_engine_force = (
@@ -86,6 +144,7 @@ func human_controls_car():
 			int(Input.is_action_pressed("move_backward"))
 		) #* acceleration
 	var local_steering = lerp(steering, Input.get_axis("steer_right", "steer_left") * 0.40, 5 * delta_tracker)
+
 	return [logal_engine_force, local_steering]
 
 func _update_rear_lights():
