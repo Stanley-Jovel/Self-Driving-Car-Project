@@ -59,56 +59,41 @@ func update_reward():
 	var right_sensor_reward = 0
 	var center_sensor_reward = 0
 	
-	# Distance Travelled Reward
-	#var current_position = global_transform.origin
-	#var forward_displacement = current_position.z - last_position.z
-	#last_position = current_position  # Update for the next step
+	var reward = 0
 	
 	# Reward for not crashing head first
 	if center_sensor <= desired_center_measure:
 		var distance = abs(center_sensor - desired_center_measure)
-		center_sensor_reward += lerp(1.0, 10.0, distance)
+		center_sensor_reward += lerp(1.0, 50.0, distance)
+	else:
+		center_sensor_reward = -50
 	
 	# Reward remain in the right lane
 	var distance = 1 - abs(right_sensor - desired_right_measure)
-	right_sensor_reward += lerp(1.0, 10.0, distance)
+	right_sensor_reward += lerp(1.0, 50.0, distance)
 	
 	# Penalization for deviating from the right lane
 	if right_sensor < 0.844 or right_sensor > 0.896:
-		right_sensor_reward *= 0.15
+		#right_sensor_reward *= 0.15
+		right_sensor_reward = -50 * 2
 	
 	if right_sensor < left_sensor:
-		right_sensor_reward -= 4
+		right_sensor_reward = -50 * 2
 	
-	ai_controller.reward += right_sensor_reward + center_sensor_reward
+	reward += right_sensor_reward + center_sensor_reward
 	
 	# Penalization for moving backwards
 	var velocity = get_normalized_velocity_in_player_reference().z
 	if velocity > 0:
-		ai_controller.reward += (velocity * 10) ** 3
+		reward += (velocity * 60) # ** 2
 	else:
-		ai_controller.reward -= 4
+		reward -= 50
+	
+	ai_controller.reward = reward
 	
 	# Penalization for steering too much
 	#var steering_penalty = abs(steering) * 2 
 	#ai_controller.reward -= steering_penalty
-	
-	#var offset_difference = current_offset - previous_offset
-#
-	#if offset_difference > (track_length / 2.0):
-		#offset_difference = offset_difference - track_length
-#
-	#if offset_difference < -(track_length / 2.0):
-		#offset_difference = offset_difference + track_length
-#
-	### Reward for moving along the track (positive or negative depending on direction)
-	#ai_controller.reward += offset_difference #/ 10.0
-	#print("offset_difference: ", offset_difference)
-#
-	### Backward movement penalty
-	#ai_controller.reward += min(0.0, get_normalized_velocity_in_player_reference().z + 0.1) * 5.0
-#
-	#previous_offset = current_offset
 	
 func reset():
 	times_restarted += 1
@@ -119,7 +104,7 @@ func reset():
 	
 	
 func _physics_process(delta):
-	update_reward()
+	#update_reward()
 	#update_current_offset()
 	delta_tracker = delta
 	if (ai_controller.heuristic != "human"):
