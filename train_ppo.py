@@ -16,19 +16,19 @@ writer = SummaryWriter()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Hyperparameters (adjust these based on your environment and needs)
-LEARNING_RATE = 1e-2
+LEARNING_RATE = 1e-3
 GAMMA = 0.99
-CLIP_EPSILON = 0.3
-ENTROPY_BETA = 0.05
+CLIP_EPSILON = 0.2
+ENTROPY_BETA = 0.001
 
-TOTAL_TIMESTEPS = 500_000
+TOTAL_TIMESTEPS = 500_000 * 2
 TIMESTEPS_PER_EPISODE = 2000
 TIMESTEPS_PER_BATCH = TIMESTEPS_PER_EPISODE * 3
-N_UPDATES_PER_ITERATION = 1
+N_UPDATES_PER_ITERATION = 5
 
 # Create PPO agent and optimizer
 agent = PPOModel(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, Constants.OUTPUT_SIZE.value).to(device)
-# agent.load_state_dict(torch.load("pretrained_model_dict_cuda.pt", map_location=device))
+agent.load_state_dict(torch.load("pretrained_model_dict_cuda.pt", map_location=device))
 # agent.load_state_dict(torch.load("ppo_agent_trained_circle_track_clock_wise.pt", map_location=device))
 actor_optim = Adam(agent.parameters(), lr=LEARNING_RATE)
 
@@ -41,11 +41,13 @@ critic_sched = torch.optim.lr_scheduler.StepLR(critic_optim, step_size=2, gamma=
 
 def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
     # Calculate advantages using Generalized Advantage Estimation (GAE)
+    agent.train()
+    critic.train()
+
     values = critic(obs).squeeze()
     batch_rtgs = compute_rtgs(rewards, GAMMA)
     A_k = batch_rtgs - values.detach()
     A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
-    print('A_k: ', A_k)
 
     mean_actor_loss = 0
     mean_critic_loss = 0
@@ -73,8 +75,8 @@ def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
         critic_loss.backward()
         critic_optim.step()
 
-    actor_sched.step()
-    critic_sched.step()
+    # actor_sched.step()
+    # critic_sched.step()
 
     mean_actor_loss /= N_UPDATES_PER_ITERATION
     mean_critic_loss /= N_UPDATES_PER_ITERATION
@@ -83,8 +85,7 @@ def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
     writer.add_scalar("mean_critic_loss/train", mean_critic_loss, t_so_far)
     mean_reward = rewards.mean()
     writer.add_scalar("mean_reward/train", mean_reward, t_so_far)
-    print(f"T So Far {t_so_far} - Mean reward: {mean_reward}")
-    print("max reward: ", rewards.max())
+    print(f"T So Far {t_so_far}, Mean reward: {mean_reward:.0f}, actor loss: {mean_actor_loss:.4f}, critic loss: {mean_critic_loss:.2f}")
 
     # with open("ppo_training_results.csv", "a") as f:
     #     f.write(f"{total_avg_loss},")
@@ -135,6 +136,7 @@ while t_so_far < TOTAL_TIMESTEPS:
 
         for ep_t in range(TIMESTEPS_PER_EPISODE):
             # Sample action from policy
+            agent.eval()
             with torch.no_grad():
                 dist = agent(history.unsqueeze(0))
                 action = dist.sample()

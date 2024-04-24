@@ -75,21 +75,27 @@ func update_reward():
 	# Penalization for deviating from the right lane
 	if right_sensor < 0.844 or right_sensor > 0.896:
 		#right_sensor_reward *= 0.15
-		right_sensor_reward = -50 * 2
+		right_sensor_reward = -50
 	
 	if right_sensor < left_sensor:
-		right_sensor_reward = -50 * 2
+		right_sensor_reward = -50
 	
 	reward += right_sensor_reward + center_sensor_reward
 	
 	# Penalization for moving backwards
 	var velocity = get_normalized_velocity_in_player_reference().z
-	if velocity > 0:
-		reward += (velocity * 60) # ** 2
+	if velocity > 0 and velocity <= 0.3:
+		reward += (velocity * 10)
+	elif velocity > 0.3 and velocity <= 0.5:
+		reward += (velocity * 30)
+	elif velocity > 0.6 and velocity <= 1:
+		reward += (velocity * 200)
 	else:
 		reward -= 50
 	
-	ai_controller.reward = reward
+	# normalize reward:
+	#ai_controller.reward = reward
+	return reward
 	
 	# Penalization for steering too much
 	#var steering_penalty = abs(steering) * 2 
@@ -104,8 +110,6 @@ func reset():
 	
 	
 func _physics_process(delta):
-	#update_reward()
-	#update_current_offset()
 	delta_tracker = delta
 	if (ai_controller.heuristic != "human"):
 		engine_force = (requested_acceleration) * acceleration

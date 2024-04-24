@@ -20,7 +20,8 @@ func get_action():
 	return [_player.requested_acceleration, _player.requested_steering]
 	
 func get_reward() -> float:
-	_player.update_reward()
+	var reward = _player.update_reward()
+	zero_reward()
 	return reward
 
 func get_action_space() -> Dictionary:

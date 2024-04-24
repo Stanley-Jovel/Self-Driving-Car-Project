@@ -38,8 +38,8 @@ model = None
 #     Constants.OUTPUT_SIZE.value).to(device)
 
 model = PPOModel(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, Constants.OUTPUT_SIZE.value).to(device)
-# model.load_state_dict(torch.load(f"pretrained_model_dict_{args.load_from_device}.pt", map_location=device))
-model.load_state_dict(torch.load(f"ppo_agent_trained_circle_track_clock_wise.pt", map_location=device))
+model.load_state_dict(torch.load(f"pretrained_model_dict_{args.load_from_device}.pt", map_location=device))
+# model.load_state_dict(torch.load(f"ppo_agent_trained_circle_track_clock_wise.pt", map_location=device))
 model.eval()
 
 def close_env():
