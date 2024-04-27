@@ -2,6 +2,13 @@
 layout: default
 ---
 
+- [Home](#project-description)
+- [Behavior Cloning (BC) Pre-training](#behavior-cloning-bc-pre-training)
+- [Proximal Policy Optimization (PPO) Training](#proximal-policy-optimization-ppo-training)
+- [Results](#results)
+- [Challenges faced](#challenges-faced)
+- [Future Steps](#future-steps)
+
 # Project Description
 
 This project explores how leveraging behavior cloning (BC) can significantly reduce the training time required for a Proximal Policy Optimization (PPO) agent to master self-driving car maneuvers within the Godot game engine. By pre-training the agent with BC to mimic expert driving behavior, the PPO agent gains an initial understanding of the environment, leading to faster convergence and improved learning efficiency compared to training from scratch.
@@ -140,11 +147,17 @@ We can see that the pretrain model achieves decent reward returns as early as 30
 
 *Video 1: PPO agent driving in "Never Seen Track" without BC pre-training*
 
+<br />
+<br />
+
 <video controls>
   <source src="https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/264e4eca-2866-44c0-ba87-8e2036f5028a" type="video/mp4">
 </video>
 
 *Video 2: PPO agent driving in "Never Seen Track" with BC pre-training*
+
+<br />
+<br />
 
 # Challenges faced
 
