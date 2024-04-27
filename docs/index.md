@@ -74,12 +74,9 @@ The final track we will use to evaluate how good the agent is at driving is the 
 2. **Neural Network Architecture**: 
 I devised a neural network architecture that takes in historical observation states as input and outputs the predicted action. The idea behind using historical observations is to provide the model with temporal information about the environment, which can help it make better predictions. 
 
-<center>
-
 ![Figure 4](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/5c1dfdbc-9921-4639-b556-d7d55903f44c)
-
 *Figure 4: Passing historical observations to the neural network*
-</center>
+
 
 In order to process historical observations, I used a 1D convolutional neural network (CNN) architecture. The CNN architecture consists of the following layers:
 
