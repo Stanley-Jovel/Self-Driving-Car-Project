@@ -38,7 +38,7 @@ class BehaviorCloningModel(nn.Module):
 class Constants(Enum):
     INPUT_SIZE = 25  # Number of features in observation
     HIDDEN_SIZE = 128  # Number of units in hidden layer
-    NUM_HISTORY = 10  # Number of history steps to use
+    NUM_HISTORY = 1  # Number of history steps to use
     OUTPUT_SIZE = 2  # Number of actions
     DROPOUT = 0.25  # Dropout rate
     lr = 1e-3  # Learning rate

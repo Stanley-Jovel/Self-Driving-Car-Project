@@ -53,53 +53,57 @@ func update_reward():
 	var center_sensor = raycasts[10]
 	var right_sensor = raycasts[0]
 	
-	var desired_right_measure = 0.871
-	var desired_center_measure = 0.8
+	var desired_center_distance = 0.8
+	var desired_left_distance = 0.8
+	var desired_right_distance = 0.915
 	
-	var right_sensor_reward = 0
-	var center_sensor_reward = 0
+	var alpha = 0.30
+	var beta = 0.30
+	var gamma = 0.40
 	
-	var reward = 0
+	var r1 = 0
+	var r2 = 0
+	var r3 = 0
+	var total_reward = 0
 	
 	# Reward for not crashing head first
-	if center_sensor <= desired_center_measure:
-		var distance = abs(center_sensor - desired_center_measure)
-		center_sensor_reward += lerp(1.0, 50.0, distance)
+	if center_sensor <= desired_center_distance:
+		r1 = 1
+	elif center_sensor < (desired_center_distance + 0.015): 
+		r1 = 0.5
 	else:
-		center_sensor_reward = -50
-	
-	# Reward remain in the right lane
-	var distance = 1 - abs(right_sensor - desired_right_measure)
-	right_sensor_reward += lerp(1.0, 50.0, distance)
-	
-	# Penalization for deviating from the right lane
-	if right_sensor < 0.844 or right_sensor > 0.896:
-		#right_sensor_reward *= 0.15
-		right_sensor_reward = -50
-	
-	if right_sensor < left_sensor:
-		right_sensor_reward = -50
-	
-	reward += right_sensor_reward + center_sensor_reward
-	
-	# Penalization for moving backwards
-	var velocity = get_normalized_velocity_in_player_reference().z
-	if velocity > 0 and velocity <= 0.3:
-		reward += (velocity * 10)
-	elif velocity > 0.3 and velocity <= 0.5:
-		reward += (velocity * 30)
-	elif velocity > 0.6 and velocity <= 1:
-		reward += (velocity * 200)
+		#print("total_reward: ", -1)
+		#return -1
+		r1 = -1
+		
+	# Reward for staying in the right lane
+	if right_sensor > desired_right_distance:
+		#print("total_reward: ", -1)
+		#return -1
+		r2 =-1
 	else:
-		reward -= 50
+		r2 = 1
 	
-	# normalize reward:
-	#ai_controller.reward = reward
-	return reward
+	if left_sensor > desired_left_distance:
+		#print("total_reward: ", -1)
+		#return -1
+		r2 = -1
+
+	# Reward for moving forward
+	r3 = requested_acceleration
 	
-	# Penalization for steering too much
-	#var steering_penalty = abs(steering) * 2 
-	#ai_controller.reward -= steering_penalty
+	total_reward += alpha * r1 + beta * r2 + gamma * r3
+	#total_reward = requested_acceleration
+	
+	#if center_sensor > 0.95 or left_sensor > 0.95 or right_sensor > 0.95:
+		#total_reward = -1
+	#else:
+		#total_reward = 1
+	#
+	#total_reward += requested_acceleration
+	
+	#print("total_reward: ", total_reward)
+	return total_reward
 	
 func reset():
 	times_restarted += 1
@@ -110,6 +114,7 @@ func reset():
 	
 	
 func _physics_process(delta):
+	#update_reward()
 	delta_tracker = delta
 	if (ai_controller.heuristic != "human"):
 		engine_force = (requested_acceleration) * acceleration

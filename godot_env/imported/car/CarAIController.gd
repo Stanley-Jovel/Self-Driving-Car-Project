@@ -44,7 +44,6 @@ func set_action(action = null) -> void:
 		var r = _player.human_controls_car()
 		_player.requested_acceleration = clampf(r[0], -1.0, 1.0)
 		_player.requested_steering = clampf(r[1], -1.0, 1.0)
-		
 
 func reset():
 	n_steps = 0

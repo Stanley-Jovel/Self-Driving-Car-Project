@@ -1,4 +1,5 @@
 import time
+import argparse
 
 import torch
 import torch.nn as nn
@@ -12,23 +13,53 @@ from src.ppo_agent import PPOModel
 from src.ppo_critic import PPOCritic
 from src.agent import Constants
 
-writer = SummaryWriter()
-
+parser = argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument(
+    "--gamma",
+    default=0.99,
+    type=float,
+    help="Discount factor for rewards",
+)
+parser.add_argument(
+    "--clip",
+    default=0.2,
+    type=float,
+    help="Clip Epsilon for PPO",
+)
+parser.add_argument(
+    "--entropy",
+    default=0.01,
+    type=float,
+    help="Entropy Beta for PPO",
+)
+parser.add_argument(
+    "--env_path",
+    default=None,
+    type=str,
+    help="The Godot binary to use, do not include for in editor training",
+)
+parser.add_argument(
+    "--pretrained_bc",
+    default=False,
+    action="store_true",
+    help="Use pretrained behavior cloning model",
+)
+args, _ = parser.parse_known_args()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Hyperparameters (adjust these based on your environment and needs)
 LEARNING_RATE = 1e-3
-GAMMA = 0.99
-CLIP_EPSILON = 0.2
-ENTROPY_BETA = 0.001
-
-TOTAL_TIMESTEPS = 500_000 * 2
-TIMESTEPS_PER_EPISODE = 2000
+TOTAL_TIMESTEPS = 500_000
+TIMESTEPS_PER_EPISODE = 4000
 TIMESTEPS_PER_BATCH = TIMESTEPS_PER_EPISODE * 3
-N_UPDATES_PER_ITERATION = 5
+N_UPDATES_PER_ITERATION = 3
+
+writer = SummaryWriter(log_dir=f"runs/pretrained_{args.pretrained_bc}_gamma_{args.gamma}_clip_{args.clip}_entropy_{args.entropy}_updates_per_iteration_{N_UPDATES_PER_ITERATION}")
 
 # Create PPO agent and optimizer
 agent = PPOModel(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, Constants.OUTPUT_SIZE.value).to(device)
-agent.load_state_dict(torch.load("pretrained_model_dict_cuda.pt", map_location=device))
+if args.pretrained_bc:
+    agent.load_state_dict(torch.load("pretrained_model_dict_cuda_num_history_1.pt", map_location=device))
 # agent.load_state_dict(torch.load("ppo_agent_trained_circle_track_clock_wise.pt", map_location=device))
 actor_optim = Adam(agent.parameters(), lr=LEARNING_RATE)
 
@@ -45,7 +76,7 @@ def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
     critic.train()
 
     values = critic(obs).squeeze()
-    batch_rtgs = compute_rtgs(rewards, GAMMA)
+    batch_rtgs = compute_rtgs(rewards, args.gamma)
     A_k = batch_rtgs - values.detach()
     A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
 
@@ -57,12 +88,11 @@ def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
         entropy = dist.entropy().mean()
         new_log_probs = dist.log_prob(actions)
         ratio = torch.exp(new_log_probs - log_probs)
-        # entropy = dist.entropy()
 
         # Calculate PPO loss
-        clipped_ratio = torch.clamp(ratio, 1.0 - CLIP_EPSILON, 1.0 + CLIP_EPSILON)
+        clipped_ratio = torch.clamp(ratio, 1.0 - args.clip, 1.0 + args.clip)
         actor_loss = -torch.min(ratio * A_k, clipped_ratio * A_k).mean()
-        actor_loss -= ENTROPY_BETA * entropy
+        actor_loss -= args.entropy * entropy
         mean_actor_loss += actor_loss.item()
         actor_optim.zero_grad()
         actor_loss.backward()
@@ -75,9 +105,6 @@ def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
         critic_loss.backward()
         critic_optim.step()
 
-    # actor_sched.step()
-    # critic_sched.step()
-
     mean_actor_loss /= N_UPDATES_PER_ITERATION
     mean_critic_loss /= N_UPDATES_PER_ITERATION
 
@@ -85,11 +112,7 @@ def ppo_update(obs, actions, log_probs, rewards, dones, t_so_far):
     writer.add_scalar("mean_critic_loss/train", mean_critic_loss, t_so_far)
     mean_reward = rewards.mean()
     writer.add_scalar("mean_reward/train", mean_reward, t_so_far)
-    print(f"T So Far {t_so_far}, Mean reward: {mean_reward:.0f}, actor loss: {mean_actor_loss:.4f}, critic loss: {mean_critic_loss:.2f}")
-
-    # with open("ppo_training_results.csv", "a") as f:
-    #     f.write(f"{total_avg_loss},")
-    
+    print(f"T So Far {t_so_far}, Mean reward: {mean_reward:.4f}, actor loss: {mean_actor_loss:.4f}, critic loss: {mean_critic_loss:.2f}")
 
 def compute_rtgs(rewards, gamma):
     batch_rtgs = []
@@ -103,7 +126,7 @@ def compute_rtgs(rewards, gamma):
 
 # Create environment
 env = StableBaselinesGodotEnv(
-    env_path=None, show_window=False, seed=0, n_parallel=1, speedup=1
+    env_path=args.env_path, show_window=False, seed=0, n_parallel=1, speedup=15
 )
 env = VecMonitor(env)
 
@@ -169,9 +192,6 @@ while t_so_far < TOTAL_TIMESTEPS:
 
     ppo_update(batch_history, actions_tensor, log_prob_tensor, reward_tensor, done_tensor, t_so_far)
     
-    # with open("ppo_training_results.csv", "a") as f:
-        # f.write(f"{mean_epoch_reward}\n")
-
     # Save trained agent
     torch.save(agent.state_dict(), "ppo_agent_trained_circle_track_clock_wise.pt")
     torch.save(critic.state_dict(), "ppo_critic_trained_circle_track_clock_wise.pt")

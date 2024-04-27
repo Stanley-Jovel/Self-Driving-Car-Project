@@ -28,18 +28,8 @@ print('device: ', device)
 args, extras = parser.parse_known_args()
 model = None
 
-# Multi agent. try transformers, bet, gaussian mixture models (GMM), diffussion. BC + RL. reward shaping. reverse RL.
-# AI to AI, have an RL policy to learn good performance, run demos on it. check if rl demos are better at bc
-   
-# Instantiate model, loss function, and optimizer
-# model = BehaviorCloningModel(
-#     Constants.NUM_HISTORY.value, 
-#     Constants.INPUT_SIZE.value, 
-#     Constants.OUTPUT_SIZE.value).to(device)
-
 model = PPOModel(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, Constants.OUTPUT_SIZE.value).to(device)
 model.load_state_dict(torch.load(f"pretrained_model_dict_{args.load_from_device}.pt", map_location=device))
-# model.load_state_dict(torch.load(f"ppo_agent_trained_circle_track_clock_wise.pt", map_location=device))
 model.eval()
 
 def close_env():
@@ -66,7 +56,6 @@ obs = torch.tensor(obs["obs"], dtype=torch.float32)
 update_history(obs)
 for _ in range(args.timesteps):
     with torch.no_grad():
-        # action = model(history.unsqueeze(0))
         dist = model(history.unsqueeze(0))
         action = dist.sample()
     action = action.squeeze(0).detach().numpy()
