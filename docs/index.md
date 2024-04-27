@@ -14,7 +14,7 @@ The BC pre-training process consists of the following steps:
 
 1. **Data Collection**:
 
-I drove the car manually in 4 different tracks in the game Godot environment to collect expert demonstrations. The expert demonstrations consist of state-action pairs, where the state represents the current observation of the environment, and the action represents the expert action taken by the human player.
+I drove the car manually in 4 different tracks in the Godot game environment to collect expert demonstrations. The expert demonstrations consist of state-action pairs, where the state represents the current observation of the environment, and the action represents the expert action taken by the human player.
 
 Observations (States) are represented by 1D tensors with 25 elements, which include the following:
 - Car velocity X
@@ -67,7 +67,7 @@ I devised a neural network architecture that takes in historical observation sta
 
 <center>
 
-![Figure 4: Passing historical observations to the neural network](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/5c1dfdbc-9921-4639-b556-d7d55903f44c)
+![Figure 4](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/5c1dfdbc-9921-4639-b556-d7d55903f44c)
 
 *Figure 4: Passing historical observations to the neural network*
 </center>
@@ -134,11 +134,15 @@ We can see that the pretrain model achieves decent reward returns as early as 30
 
 # Results
 
-![Video 1](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/0e16fb99-e2e7-495a-821c-4c9cd98b5a8b)
+<video controls>
+  <source src="https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/0e16fb99-e2e7-495a-821c-4c9cd98b5a8b" type="video/mp4">
+</video>
 
 *Video 1: PPO agent driving in "Never Seen Track" without BC pre-training*
 
-![Video 2](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/264e4eca-2866-44c0-ba87-8e2036f5028a)
+<video controls>
+  <source src="https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/264e4eca-2866-44c0-ba87-8e2036f5028a" type="video/mp4">
+</video>
 
 *Video 2: PPO agent driving in "Never Seen Track" with BC pre-training*
 
@@ -169,7 +173,9 @@ Example:
 
 *Figure 8: Multi-modality in driving*
 
-![Video 3](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/93fbe30c-583d-4dd8-b265-e6fd287492fe)
+<video controls>
+  <source src="https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/93fbe30c-583d-4dd8-b265-e6fd287492fe" type="video/mp4">
+</video>
 
 *Video 3: agent facing multi-modality*
 
