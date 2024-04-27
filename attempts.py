@@ -1,5 +1,3 @@
-attempts
-
 class FNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, dropout):
         super(FNN, self).__init__()
