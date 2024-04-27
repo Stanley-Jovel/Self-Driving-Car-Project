@@ -9,6 +9,8 @@ layout: default
 - [Challenges faced](#challenges-faced)
 - [Future Steps](#future-steps)
 
+You can find the code for this project [here]({{ site.github.repository_url }})
+
 # Project Description
 
 This project explores how leveraging behavior cloning (BC) can significantly reduce the training time required for a Proximal Policy Optimization (PPO) agent to master self-driving car maneuvers within the Godot game engine. By pre-training the agent with BC to mimic expert driving behavior, the PPO agent gains an initial understanding of the environment, leading to faster convergence and improved learning efficiency compared to training from scratch.
@@ -191,4 +193,7 @@ Example:
 </video>
 
 *Video 3: agent facing multi-modality*
+
+
+You can find the code for this project [here]({{ site.github.repository_url }})
 
