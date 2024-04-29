@@ -1,3 +1,4 @@
+from enum import Enum
 import torch
 import torch.nn as nn
 from torch.distributions import MultivariateNormal
@@ -38,3 +39,14 @@ class PPOModel(nn.Module):
         cov_matrix = torch.diag_embed(std**2) 
         dist = MultivariateNormal(mean, cov_matrix)
         return dist
+    
+class Constants(Enum):
+    INPUT_SIZE = 25  # Number of features in observation
+    HIDDEN_SIZE = 128  # Number of units in hidden layer
+    NUM_HISTORY = 1  # Number of history steps to use
+    OUTPUT_SIZE = 2  # Number of actions
+    DROPOUT = 0.25  # Dropout rate
+    lr = 1e-3  # Learning rate
+    EPOCHS = 20  # Number of epochs to train
+
+    NUM_LAYERS = 4  # Number of LSTM layers

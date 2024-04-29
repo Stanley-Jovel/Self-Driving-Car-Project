@@ -5,8 +5,7 @@ import torch
 from stable_baselines3.common.vec_env.vec_monitor import VecMonitor
 from godot_rl.wrappers.stable_baselines_wrapper import StableBaselinesGodotEnv
 
-from src.agent import BehaviorCloningModel, Constants
-from src.ppo_agent import PPOModel
+from src.ppo_agent import PPOModel, Constants
 
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument(
@@ -29,7 +28,7 @@ args, extras = parser.parse_known_args()
 model = None
 
 model = PPOModel(Constants.NUM_HISTORY.value, Constants.INPUT_SIZE.value, Constants.OUTPUT_SIZE.value).to(device)
-model.load_state_dict(torch.load(f"pretrained_model_dict_{args.load_from_device}.pt", map_location=device))
+model.load_state_dict(torch.load(f"pretrained_model_dict_{args.load_from_device}_num_history_1.pt", map_location=device))
 model.eval()
 
 def close_env():

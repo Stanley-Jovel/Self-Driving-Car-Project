@@ -9,9 +9,8 @@ from godot_rl.wrappers.stable_baselines_wrapper import StableBaselinesGodotEnv
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 
-from src.ppo_agent import PPOModel
+from src.ppo_agent import PPOModel, Constants
 from src.ppo_critic import PPOCritic
-from src.agent import Constants
 
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument(
