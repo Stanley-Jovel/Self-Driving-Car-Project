@@ -75,6 +75,7 @@ The final track we will use to evaluate how good the agent is at driving is the 
 I devised a neural network architecture that takes in historical observation states as input and outputs the predicted action. The idea behind using historical observations is to provide the model with temporal information about the environment, which can help it make better predictions. 
 
 ![Figure 4](https://github.com/Stanley-Jovel/Self-Driving-Car-Project/assets/1679438/5c1dfdbc-9921-4639-b556-d7d55903f44c)
+
 *Figure 4: Passing historical observations to the neural network*
 
 
